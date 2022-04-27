@@ -6,6 +6,8 @@
 use rand::thread_rng;
 #[cfg(any(test, feature = "rand"))]
 use rand::{CryptoRng, Rng};
+#[cfg(any(test, feature = "sgx_rand"))]
+use rand::Rng;
 
 use super::{from_hex, Error};
 use core::{fmt, ptr, str};
@@ -201,11 +203,40 @@ impl<C: Signing> Secp256k1<C> {
         self.sign_schnorr_with_rng(msg, keypair, rng)
     }
 
+        /// Create a schnorr signature using the given random number generator to
+    /// generate the auxiliary random data.
+    #[cfg(any(test, feature = "sgx_rand"))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "sgx_rand")))]
+    #[deprecated(since = "0.21.0", note = "Use sign_schnorr_with_rng instead.")]
+    pub fn schnorrsig_sign_with_rng<R: Rng>(
+        &self,
+        msg: &Message,
+        keypair: &KeyPair,
+        rng: &mut R,
+    ) -> Signature {
+        self.sign_schnorr_with_rng(msg, keypair, rng)
+    }
+
     /// Create a schnorr signature using the given random number generator to
     /// generate the auxiliary random data.
     #[cfg(any(test, feature = "rand"))]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn sign_schnorr_with_rng<R: Rng + CryptoRng>(
+        &self,
+        msg: &Message,
+        keypair: &KeyPair,
+        rng: &mut R,
+    ) -> Signature {
+        let mut aux = [0u8; 32];
+        rng.fill_bytes(&mut aux);
+        self.sign_schnorr_helper(msg, keypair, aux.as_c_ptr() as *const ffi::types::c_uchar)
+    }
+
+    /// Create a schnorr signature using the given random number generator to
+    /// generate the auxiliary random data.
+    #[cfg(any(test, feature = "sgx_rand"))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "sgx_rand")))]
+    pub fn sign_schnorr_with_rng<R: Rng>(
         &self,
         msg: &Message,
         keypair: &KeyPair,

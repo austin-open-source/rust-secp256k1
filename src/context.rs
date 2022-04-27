@@ -204,11 +204,10 @@ mod alloc_only {
                 size,
             };
 
-            #[cfg(feature = "rand-std")]
+            #[cfg(all(feature = "rand-std", any(feature = "rand", feature = "sgx_rand")))]
             {
                 ctx.randomize(&mut rand::thread_rng());
             }
-
             ctx
         }
     }

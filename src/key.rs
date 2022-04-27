@@ -16,7 +16,7 @@
 //! Public and secret keys.
 //!
 
-#[cfg(any(test, feature = "rand"))] use rand::Rng;
+#[cfg(any(test, feature = "rand", feature = "sgx_rand"))] use rand::Rng;
 
 use core::{fmt, ptr, str};
 use core::ops::BitXor;
@@ -121,7 +121,7 @@ impl str::FromStr for PublicKey {
     }
 }
 
-#[cfg(any(test, feature = "rand"))]
+#[cfg(any(test, feature = "rand", feature = "sgx_rand"))]
 fn random_32_bytes<R: Rng + ?Sized>(rng: &mut R) -> [u8; 32] {
     let mut ret = [0u8; 32];
     rng.fill_bytes(&mut ret);
@@ -140,8 +140,8 @@ impl SecretKey {
     /// # }
     /// ```
     #[inline]
-    #[cfg(any(test, feature = "rand"))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
+    #[cfg(any(test, feature = "rand", feature = "sgx_rand"))]
+    #[cfg_attr(docsrs, doc(cfg(any(feature = "rand", feature = "sgx_rand"))))]
     pub fn new<R: Rng + ?Sized>(rng: &mut R) -> SecretKey {
         let mut data = random_32_bytes(rng);
         unsafe {
@@ -777,8 +777,8 @@ impl KeyPair {
     /// # }
     /// ```
     #[inline]
-    #[cfg(any(test, feature = "rand"))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
+    #[cfg(any(test, feature = "rand", feature = "sgx_rand"))]
+    #[cfg_attr(docsrs, doc(cfg(any(feature = "rand", feature = "sgx_rand"))))]
     pub fn new<R: ::rand::Rng + ?Sized, C: Signing>(secp: &Secp256k1<C>, rng: &mut R) -> KeyPair {
         let mut random_32_bytes = || {
             let mut ret = [0u8; 32];
@@ -797,8 +797,8 @@ impl KeyPair {
 
     /// Generates a new random secret key using the global [`SECP256K1`] context.
     #[inline]
-    #[cfg(all(feature = "global-context", feature = "rand"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "global-context", feature = "rand"))))]
+    #[cfg(all(feature = "global-context", any(feature = "rand", feature = "sgx_rand")))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "global-context", any(feature = "rand", feature = "sgx_rand")))))]
     pub fn new_global<R: ::rand::Rng + ?Sized>(rng: &mut R) -> KeyPair {
         KeyPair::new(SECP256K1, rng)
     }

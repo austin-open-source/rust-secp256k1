@@ -173,8 +173,10 @@ pub extern crate bitcoin_hashes as hashes;
 #[cfg(all(test, feature = "unstable"))]
 extern crate test;
 #[cfg(any(test, feature = "rand"))]
-#[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "rand", not(target_vendor = "teaclave")))))]
 pub extern crate rand;
+#[cfg(any(test, feature = "sgx_rand"))]
+pub extern crate sgx_rand as rand;
 #[cfg(any(test))]
 extern crate rand_core;
 #[cfg(feature = "serde")]
@@ -182,7 +184,7 @@ extern crate rand_core;
 pub extern crate serde;
 #[cfg(all(test, feature = "serde"))]
 extern crate serde_test;
-#[cfg(any(test, feature = "rand"))]
+#[cfg(any(test, any(feature = "rand", feature = "sgx_rand")))]
 use rand::Rng;
 #[cfg(any(test, feature = "std"))]
 extern crate core;
@@ -468,7 +470,7 @@ impl<C: Context> Secp256k1<C> {
     ///
     /// Requires compilation with "rand" feature. See comment by Gregory Maxwell in
     /// [libsecp256k1](https://github.com/bitcoin-core/secp256k1/commit/d2275795ff22a6f4738869f5528fbbb61738aa48).
-    #[cfg(any(test, feature = "rand"))]
+    #[cfg(any(test, any(feature = "rand", feature = "sgx_rand")))]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn randomize<R: Rng + ?Sized>(&mut self, rng: &mut R) {
         let mut seed = [0u8; 32];
@@ -499,7 +501,7 @@ impl<C: Signing> Secp256k1<C> {
     /// Generates a random keypair. Convenience function for [`SecretKey::new`] and
     /// [`PublicKey::from_secret_key`].
     #[inline]
-    #[cfg(any(test, feature = "rand"))]
+    #[cfg(any(test, any(feature = "rand", feature = "sgx_rand")))]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn generate_keypair<R: Rng + ?Sized>(&self, rng: &mut R)
                                     -> (key::SecretKey, key::PublicKey) {
@@ -511,7 +513,7 @@ impl<C: Signing> Secp256k1<C> {
 
 /// Generates a random keypair using the global [`SECP256K1`] context.
 #[inline]
-#[cfg(all(feature = "global-context", feature = "rand"))]
+#[cfg(all(feature = "global-context", any(feature = "rand", feature = "sgx_rand")))]
 #[cfg_attr(docsrs, doc(cfg(all(feature = "global-context", feature = "rand"))))]
 pub fn generate_keypair<R: Rng + ?Sized>(rng: &mut R) -> (key::SecretKey, key::PublicKey) {
     SECP256K1.generate_keypair(rng)

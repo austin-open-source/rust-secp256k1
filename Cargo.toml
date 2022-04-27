@@ -24,7 +24,7 @@ std = ["secp256k1-sys/std"]
 # allow use of Secp256k1::new and related API that requires an allocator
 alloc = []
 bitcoin-hashes-std = ["bitcoin_hashes/std"]
-rand-std = ["rand/std"]
+rand-std = ["rand/std", "sgx_rand"]
 recovery = ["secp256k1-sys/recovery"]
 lowmemory = ["secp256k1-sys/lowmemory"]
 global-context = ["std"]
@@ -43,7 +43,11 @@ serde = { version = "1.0", default-features = false, optional = true }
 # You likely only want to enable these if you explicitly do not want to use "std", otherwise enable
 # the respective -std feature e.g., bitcoin-hashes-std
 bitcoin_hashes = { version = "0.10", default-features = false, optional = true }
+[target.'cfg(not(target_vendor = "teaclave"))'.dependencies]
 rand = { version = "0.6", default-features = false, optional = true }
+
+[target.'cfg(target_vendor = "teaclave")'.dependencies]
+sgx_rand = { git = "https://github.com/apache/incubator-teaclave-sgx-sdk.git", branch = "v2.0.0-preview", optional = true }
 
 [dev-dependencies]
 rand = "0.6"
